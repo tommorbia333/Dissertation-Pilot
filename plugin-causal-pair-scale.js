@@ -1,6 +1,11 @@
 (function (jspsych) {
   "use strict";
 
+  if (!jspsych || !jspsych.ParameterType) {
+    console.warn("causal-pair-scale plugin: jsPsychModule not available at load time");
+    return;
+  }
+
   const info = {
     name: "causal-pair-scale",
     parameters: {
@@ -92,4 +97,4 @@
 
   CausalPairScalePlugin.info = info;
   window.jsPsychCausalPairScale = CausalPairScalePlugin;
-})(jsPsychModule);
+})(typeof jsPsychModule !== "undefined" ? jsPsychModule : null);

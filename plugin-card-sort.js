@@ -1,6 +1,11 @@
 (function (jspsych) {
   "use strict";
 
+  if (!jspsych || !jspsych.ParameterType) {
+    console.warn("card-sort plugin: jsPsychModule not available at load time");
+    return;
+  }
+
   const info = {
     name: "card-sort",
     parameters: {
@@ -241,4 +246,4 @@
 
   CardSortPlugin.info = info;
   window.jsPsychCardSort = CardSortPlugin;
-})(jsPsychModule);
+})(typeof jsPsychModule !== "undefined" ? jsPsychModule : null);

@@ -1,6 +1,11 @@
 (function (jspsych) {
     "use strict";
   
+    if (!jspsych || !jspsych.ParameterType) {
+      console.warn("card-board plugin: jsPsychModule not available at load time");
+      return;
+    }
+
     const info = {
       name: "card-board",
       parameters: {
@@ -395,5 +400,5 @@
   
     CardBoardPlugin.info = info;
     window.jsPsychCardBoard = CardBoardPlugin;
-  })(jsPsychModule);
+  })(typeof jsPsychModule !== "undefined" ? jsPsychModule : null);
   
