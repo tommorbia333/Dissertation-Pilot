@@ -15,7 +15,6 @@
 // To do:
 // - Card task?
 // - Make git repository for the project
-
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
@@ -34,7 +33,7 @@ const runtimeConfig = {
   completionUrl: getParam("completion_url") || "",
   disqualificationUrl: getParam("disqualify_url") || "disqualified.html",
   comprehensionMinCorrect: getNumericParam("comprehension_min_correct", 1),
-  comprehensionMaxWrong: getNumericParam("comprehension_max_wrong", 2)
+  comprehensionMaxWrong: getNumericParam("comprehension_max_wrong", 3)
 };
 
 const participantMeta = {
@@ -145,6 +144,52 @@ if (typeof window.jsPsychCausalPairScale === "undefined" && typeof window.jsPsyc
   })(window.jsPsychModule);
 }
 
+// --- Canonical key events for the card task (E1–E8) ---
+// Source: Pilot Human Experiment.pdf canonical event lists. :contentReference[oaicite:4]{index=4} :contentReference[oaicite:5]{index=5} :contentReference[oaicite:6]{index=6}
+
+const canonicalCardEvents = {
+  medical: [
+    "E1: A hospital administrator approves a policy reducing overnight staffing.",
+    "E2: A contractor disables a ventilator alarm during maintenance.",
+    "E3: The contractor leaves without re-enabling the alarm.",
+    "E4: A nurse is assigned more patients than usual.",
+    "E5: A brief power interruption occurs.",
+    "E6: The ventilator stops without sounding an alarm.",
+    "E7: The nurse discovers a patient in respiratory distress.",
+    "E8: An inquest later reviews the incident."
+  ],
+  workplace: [
+    "E1: A manager approves a plan to consolidate server resources.",
+    "E2: A technician updates configuration settings on a backup system.",
+    "E3: The technician does not restart one service.",
+    "E4: An analyst begins processing a large dataset.",
+    "E5: System load increases across the network.",
+    "E6: A critical service stops responding.",
+    "E7: Users report being unable to access shared files.",
+    "E8: An internal review examines the incident."
+  ],
+  coastal: [
+    "E1: A city council approves a pilot floodgate project for a coastal road.",
+    "E2: Contractors install temporary barriers and signage near the road.",
+    "E3: A utilities team schedules a routine inspection of a pump station.",
+    "E4: The inspection requires a temporary shutdown of the pump station.",
+    "E5: A weather service issues a coastal surge warning.",
+    "E6: The floodgate is activated during the warning period.",
+    "E7: Water enters the road area and traffic is halted.",
+    "E8: A municipal review later examines the sequence of events."
+  ]
+};
+
+function getCanonicalCardEventsForStory(storyTitle) {
+  // Medical short + medical medium (fluff) should use the same canonical E1–E8 list. :contentReference[oaicite:7]{index=7}
+  const t = (storyTitle || "").toLowerCase();
+  if (t.includes("hospital ward")) return canonicalCardEvents.medical;
+  if (t.includes("server outage")) return canonicalCardEvents.workplace;
+  if (t.includes("coastal road floodgate")) return canonicalCardEvents.coastal;
+  return null;
+}
+
+
 const medicalShortQuestions = {
   temporal: [
     { prompt: "Did the hospital administrator approving a policy to reduce overnight staffing levels occur before the maintenance contractor disabling a ventilator alarm during a routine test?", labels: temporal_scale, required: true },
@@ -172,9 +217,11 @@ const medicalShortQuestions = {
   ],
   comprehension: [
     { prompt: "Was an inquest mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Was the nurse assigned less patients than usual?", labels: y_n_u, required: true, correct: "No" },
     { prompt: "Was a power interruption mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Was a maintenance contractor mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
-    { prompt: "Was a ventilator alarm mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" }
+    { prompt: "Was a ventilator alarm mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Did the patient experience a heart attack?", labels: y_n_u, required: true, correct: "No" }
   ]
 };
 
@@ -205,9 +252,11 @@ const medicalMediumQuestions = {
   ],
   comprehension: [
     { prompt: "Was an inquest mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Was the nurse assigned less patients than usual?", labels: y_n_u, required: true, correct: "No" },
     { prompt: "Was a power interruption mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Was a maintenance contractor mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
-    { prompt: "Was a ventilator alarm mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" }
+    { prompt: "Was a ventilator alarm mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Did the patient experience a heart attack?", labels: y_n_u, required: true, correct: "No" }
   ]
 };
 
@@ -238,9 +287,11 @@ const workplaceQuestions = {
   ],
   comprehension: [
     { prompt: "Was an internal review mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Did the technician restart one of the services?", labels: y_n_u, required: true, correct: "No" },
     { prompt: "Was a backup system mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Was a large dataset mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
-    { prompt: "Were shared files mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" }
+    { prompt: "Were shared files mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Did a critical service stop responding?", labels: y_n_u, required: true, correct: "Yes" }
   ]
 };
 
@@ -271,9 +322,11 @@ const coastalQuestions = {
   ],
   comprehension: [
     { prompt: "Was a coastal surge warning mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Did the floodgate stop being activated during the warning period?", labels: y_n_u, required: true, correct: "No" },
     { prompt: "Was a pump station mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Were temporary barriers or signage mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
-    { prompt: "Was a municipal review mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" }
+    { prompt: "Was a municipal review mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
+    { prompt: "Did a utilities team schedule a routine inspection of the road?", labels: y_n_u, required: true, correct: "No" }
   ]
 };
 
@@ -337,4 +390,348 @@ const storyBank = {
   "Stories/Medical Medium Fluff NonLinear.pdf": {
     title: "Hospital Ward Incident (Detailed)",
     paragraphs: [
-      "In the months that followed, after records and logs had been collected, an inq
+      "In the months that followed, after records and logs had been collected, an inquest reviewed the sequence of events surrounding the incident.",
+      "Some time earlier, during a scheduled round later in the shift, the nurse entered the room and found a patient experiencing respiratory distress.",
+      "Later that night, after a short disruption to electrical systems on the ward, the ventilator stopped operating without sounding an alarm, and the room remained otherwise undisturbed.",
+      "Several weeks before the incident, during a routine administrative review of hospital operations, a hospital administrator approved a policy to reduce overnight staffing levels on the ward as part of a broader efficiency plan.",
+      "On the night of the incident, as staff assignments were being finalized at the start of the shift, a nurse was assigned more patients than usual across several rooms on the ward.",
+      "On a later day, during scheduled equipment maintenance in one of the patient rooms, a maintenance contractor disabled a ventilator alarm while performing a standard test of the machine's functions.",
+      "After completing the test and documenting the procedure, the contractor left the room without re-enabling the alarm before moving on to another task elsewhere in the building.",
+      "Earlier that same night, while activity on the ward remained relatively quiet, a brief interruption in power occurred, affecting several pieces of equipment for a short period of time."
+    ],
+    questions: medicalMediumQuestions
+  },
+  "Stories/Workplace Short Linear.pdf": {
+    title: "Server Outage at Work",
+    paragraphs: [
+      "Several months before the outage, a manager approved a plan to consolidate server resources.",
+      "On a later date, a technician updated configuration settings on a backup system.",
+      "After finishing the update, the technician did not restart one of the services.",
+      "On the morning of the incident, an analyst began processing a large dataset.",
+      "Shortly afterward, system load increased across the network.",
+      "As load increased, a critical service stopped responding.",
+      "Later that morning, users reported being unable to access shared files.",
+      "In the weeks that followed, an internal review examined the incident."
+    ],
+    questions: workplaceQuestions
+  },
+  "Stories/Workplace Short NonLinear.pdf": {
+    title: "Server Outage at Work",
+    paragraphs: [
+      "Later that morning, users reported being unable to access shared files.",
+      "Several months before the outage, a manager approved a plan to consolidate server resources.",
+      "In the weeks that followed, an internal review examined the incident.",
+      "As load increased, a critical service stopped responding.",
+      "On a later date, a technician updated configuration settings on a backup system.",
+      "On the morning of the incident, an analyst began processing a large dataset.",
+      "After finishing the update, the technician did not restart one of the services.",
+      "Shortly afterward, system load increased across the network."
+    ],
+    questions: workplaceQuestions
+  },
+  "Stories/Coastal_Floodgate_Heavy_Fluff_Linear.pdf": {
+    title: "Coastal Road Floodgate Incident",
+    paragraphs: [
+      "The coastal road ran alongside a low seawall, with a pedestrian path on the inland side and a line of salt-tolerant shrubs planted at regular intervals. A small electronic signboard near the bus stop displayed service changes when construction work was active.",
+      "The city council approved a pilot floodgate project for the coastal road. In the weeks after the approval, a short project bulletin appeared on the city website and was reposted on a community noticeboard near a cafe. People who used the road daily often noticed the same set of blue directional arrows on temporary signs when routes changed.",
+      "Contractors installed temporary barriers and signage near the road. The barriers created a narrower corridor for vehicles, and pedestrians were guided to a marked crossing point that remained in the same place throughout the works. At different times of day, the area alternated between quiet stretches and brief clusters of activity around the crossing.",
+      "A utilities team scheduled a routine inspection of a pump station. The pump station sat behind a locked metal gate, and the access path to it was usually empty except for maintenance visits. The inspection date was listed on an internal work calendar, separate from the construction timetable.",
+      "The inspection required a temporary shutdown of the pump station. A short entry noting the shutdown window was added to a maintenance log, and the pump station status indicator was set to 'offline' during that period. The nearby electronic signboard continued to cycle through the same rotating messages.",
+      "A weather service issued a coastal surge warning. The warning appeared as a standard alert format on multiple apps, and local radio repeated the same headline at set intervals. People who checked the tide chart often looked first at the same reference point: the predicted peak time.",
+      "The floodgate was activated during the warning period. A work crew followed a checklist, and the activation was recorded with a timestamp in a routine operations form. The temporary barriers and the blue-arrow signs remained in place, unchanged from earlier in the week.",
+      "Water entered the road area and traffic was halted. Drivers were redirected to an inland route, and buses skipped the coastal stop while the closure remained active. After the detour, some pedestrians returned to the same cafe noticeboard, where the latest printed update had been taped over an older sheet.",
+      "A municipal review later examined the sequence of events. The review compiled logs from multiple teams and summarized them as a timeline, using the surge warning time as a reference point. In follow-up meetings, the same map of the coastal road was projected repeatedly, with the floodgate location marked in a single highlighted box."
+    ],
+    questions: coastalQuestions
+  },
+  "Stories/Coastal Floodgate Heavy Fluff Nonlinear.pdf": {
+    title: "Coastal Road Floodgate Incident",
+    paragraphs: [
+      "The coastal road ran alongside a low seawall, with a pedestrian path on the inland side and a line of salt-tolerant shrubs planted at regular intervals. A small electronic signboard near the bus stop displayed service changes when construction work was active.",
+      "A municipal review later examined the sequence of events. The review compiled logs from multiple teams and summarized them as a timeline, using the surge warning time as a reference point. In follow-up meetings, the same map of the coastal road was projected repeatedly, with the floodgate location marked in a single highlighted box.",
+      "Water entered the road area and traffic was halted. Drivers were redirected to an inland route, and buses skipped the coastal stop while the closure remained active. After the detour, some pedestrians returned to the same cafe noticeboard, where the latest printed update had been taped over an older sheet.",
+      "The city council approved a pilot floodgate project for the coastal road. In the weeks after the approval, a short project bulletin appeared on the city website and was reposted on a community noticeboard near a cafe. People who used the road daily often noticed the same set of blue directional arrows on temporary signs when routes changed.",
+      "A weather service issued a coastal surge warning. The warning appeared as a standard alert format on multiple apps, and local radio repeated the same headline at set intervals. People who checked the tide chart often looked first at the same reference point: the predicted peak time.",
+      "Contractors installed temporary barriers and signage near the road. The barriers created a narrower corridor for vehicles, and pedestrians were guided to a marked crossing point that remained in the same place throughout the works. At different times of day, the area alternated between quiet stretches and brief clusters of activity around the crossing.",
+      "The inspection required a temporary shutdown of the pump station. A short entry noting the shutdown window was added to a maintenance log, and the pump station status indicator was set to 'offline' during that period. The nearby electronic signboard continued to cycle through the same rotating messages.",
+      "A utilities team scheduled a routine inspection of a pump station. The pump station sat behind a locked metal gate, and the access path to it was usually empty except for maintenance visits. The inspection date was listed on an internal work calendar, separate from the construction timetable.",
+      "The floodgate was activated during the warning period. A work crew followed a checklist, and the activation was recorded with a timestamp in a routine operations form. The temporary barriers and the blue-arrow signs remained in place, unchanged from earlier in the week."
+    ],
+    questions: coastalQuestions
+  }
+};
+
+const storyIds = Object.keys(storyBank);
+const selectedStoryId = storyIds[Math.floor(Math.random() * storyIds.length)];
+const fallbackStoryId = "Stories/Medical Short Linear.pdf";
+const selectedStory = storyBank[selectedStoryId] || storyBank[fallbackStoryId];
+const q = selectedStory.questions;
+
+if (!storyBank[selectedStoryId]) {
+  console.warn("No story defined for:", selectedStoryId, "- using Medical Short as fallback.");
+}
+
+const jsPsych = initJsPsych({
+  on_finish: () => {
+    if (runtimeConfig.debug) {
+      jsPsych.data.displayData();
+    }
+  }
+});
+
+jsPsych.data.addProperties({
+  ...participantMeta,
+  story_shown: selectedStoryId,
+  story_title: selectedStory.title
+});
+
+let comprehensionResult = {
+  passed: false,
+  correctCount: 0,
+  wrongCount: 0,
+  totalCount: q.comprehension.length
+};
+
+function scoreComprehension(responseObject, questionSet) {
+  const answerIndexByLabel = { Yes: 0, No: 1, Unsure: 2 };
+  let correctCount = 0;
+
+  questionSet.forEach((question, i) => {
+    const responseIndex = responseObject[`Q${i}`];
+    const expectedIndex = answerIndexByLabel[question.correct];
+    if (typeof expectedIndex === "number" && responseIndex === expectedIndex) {
+      correctCount += 1;
+    }
+  });
+
+  return {
+    correctCount,
+    wrongCount: questionSet.length - correctCount,
+    totalCount: questionSet.length,
+    passed:
+      correctCount >= runtimeConfig.comprehensionMinCorrect &&
+      (questionSet.length - correctCount) <= runtimeConfig.comprehensionMaxWrong
+  };
+}
+
+const intro = {
+  type: jsPsychInstructions,
+  pages: [
+    `<h2>Instructions</h2>
+     <p>You will read a short narrative once.</p>
+     <p><strong>Please do not go back to re-read the story once you begin the questions.</strong></p>
+     <p>Answer based on your understanding and memory.</p>`
+  ],
+  show_clickable_nav: true,
+  allow_backward: false
+};
+
+const demographics = {
+  type: jsPsychSurveyHtmlForm,
+  html: `
+    <p><strong>Participant information</strong></p>
+    <p>Age: <input name="age" type="number" min="18" max="120" required></p>
+    <p>Gender (optional): <input name="gender" type="text"></p>
+    <p>Highest education completed: <input name="education" type="text" required></p>
+    <p>Native language(s): <input name="native_languages" type="text" required></p>
+    <p>English proficiency (1-7):
+      <select name="english_proficiency" required>
+        <option value="">Select</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option>
+        <option>5</option><option>6</option><option>7</option>
+      </select>
+    </p>
+    <p>Age you began learning English (if not native): <input name="english_start_age" type="number" min="0" max="120"></p>
+  `,
+  button_label: "Continue"
+};
+
+const view_story = {
+  type: jsPsychHtmlButtonResponse,
+  stimulus: `
+    <div class="story-wrap" style="max-width: 860px; margin: 0 auto; text-align: left; line-height: 1.65;">
+      <h2>${selectedStory.title}</h2>
+      ${selectedStory.paragraphs.map((paragraph) => `<p>${paragraph}</p>`).join("")}
+    </div>
+  `,
+  choices: ["Continue"],
+  prompt: "<p>Please read the story carefully. You will not be able to return to it.</p>"
+};
+
+const comprehension = {
+  type: jsPsychSurveyLikert,
+  preamble: `<h2>Comprehension Check</h2>
+             <p>Answer based on what was explicitly stated in the narrative.</p>`,
+  questions: q.comprehension.map((item) => ({
+    prompt: item.prompt,
+    labels: item.labels,
+    required: item.required
+  })),
+  button_label: "Continue",
+  on_finish: (data) => {
+    comprehensionResult = scoreComprehension(data.response, q.comprehension);
+    data.comprehension_correct = comprehensionResult.correctCount;
+    data.comprehension_wrong = comprehensionResult.wrongCount;
+    data.comprehension_total = comprehensionResult.totalCount;
+    data.comprehension_passed = comprehensionResult.passed;
+
+    jsPsych.data.addProperties({
+      comprehension_passed: comprehensionResult.passed,
+      comprehension_correct: comprehensionResult.correctCount,
+      comprehension_wrong: comprehensionResult.wrongCount,
+      comprehension_total: comprehensionResult.totalCount
+    });
+  }
+};
+
+const temporal = {
+  type: jsPsychSurveyLikert,
+  preamble: `<h2>1) Pairwise Temporal Questions</h2>
+             <p>Treat "before" as earlier in time in the story world.</p>`,
+  questions: q.temporal,
+  button_label: "Continue"
+};
+
+const causal = {
+  timeline: [
+    {
+      type: jsPsychCausalPairScale,
+      instruction: "Indicate the strength of the causal contribution that the event on the left had to the event on the right given the context of the story.",
+      left_event: jsPsych.timelineVariable("left_event"),
+      right_event: jsPsych.timelineVariable("right_event"),
+      labels: jsPsych.timelineVariable("labels"),
+      required: jsPsych.timelineVariable("required"),
+      button_label: "Continue"
+    }
+  ],
+  timeline_variables: q.causal
+};
+
+const counterfactual = {
+  type: jsPsychSurveyLikert,
+  preamble: `<h2>3) Counterfactual Judgements</h2>
+             <p>Imagine the change described in each item. Rate how the likelihood of the target event would change in the same story setting.</p>`,
+  questions: q.counterfactual,
+  button_label: "Continue"
+};
+
+// --- 4) Event ordering (Card Sort) task ---
+// Participants reorder shuffled canonical events into chronological order.
+// Assumes jsPsychCardSort is loaded (plugin-card-sort.js).
+
+const cardTaskEvents = getCanonicalCardEventsForStory(selectedStory.title) || selectedStory.paragraphs;
+
+const cardSortTask = {
+  type: jsPsychCardSort,
+  title: "4) Event Ordering",
+  instructions:
+    "Below are key events from the story you just read, presented in a random order.<br><br>" +
+    "Drag the cards to rearrange them into the <strong>chronological order</strong> in which " +
+    "the events occurred, from the <strong>earliest</strong> event (top) to the " +
+    "<strong>latest</strong> event (bottom).",
+  events: cardTaskEvents,
+  button_label: "Continue"
+};
+
+// --- 5) Event-graph reconstruction (Card Task) ---
+// NOTE: This assumes jsPsychCardBoard is loaded (plugin-card-board.js).
+
+const cardTask = {
+  type: jsPsychCardBoard,
+  title: "5) Card Task (Event-Graph Reconstruction)",
+  instructions:
+    "Drag each event onto the board.<br><br>" +
+    "<strong>X-axis</strong>: earlier → later (temporal sequence)<br>" +
+    "<strong>Y-axis</strong>: lower → higher causal impact<br><br>" +
+    "Use distance as your guide: events that are closer together should be those you think are closer in sequence/causal linkage.",
+  x_label_left: "Earlier",
+  x_label_right: "Later",
+  y_label_bottom: "Lower impact",
+  y_label_top: "Higher impact",
+  events: cardTaskEvents,
+  required_place_all: true,
+  start_layout: "stack"
+};
+
+
+const pilotFeedback = {
+  type: jsPsychSurveyHtmlForm,
+  preamble: "<h2>Pilot Feedback</h2><p>Thank you. Please share any feedback about this pilot version.</p>",
+  html: `
+    <p>How clear were the instructions? (1 = very unclear, 7 = very clear)<br>
+    <input name="clarity_rating" type="number" min="1" max="7" required></p>
+    <p>How difficult was the task? (1 = very easy, 7 = very difficult)<br>
+    <input name="difficulty_rating" type="number" min="1" max="7" required></p>
+    <p>Did you encounter any technical issues?<br>
+    <textarea name="technical_issues" rows="4" style="width:100%;"></textarea></p>
+    <p>Any other feedback?<br>
+    <textarea name="general_feedback" rows="5" style="width:100%;"></textarea></p>
+  `,
+  button_label: "Submit feedback"
+};
+
+const markCompleted = {
+  type: jsPsychCallFunction,
+  func: () => {
+    jsPsych.data.addProperties({ final_status: "completed" });
+  }
+};
+
+const markDisqualified = {
+  type: jsPsychCallFunction,
+  func: () => {
+    jsPsych.data.addProperties({ final_status: "disqualified" });
+  }
+};
+
+const redirectToCompletion = {
+  timeline: [
+    {
+      type: jsPsychCallFunction,
+      func: () => {
+        if (runtimeConfig.completionUrl) {
+          window.location.href = runtimeConfig.completionUrl;
+        }
+      }
+    }
+  ],
+  conditional_function: () => Boolean(runtimeConfig.completionUrl)
+};
+
+const completionFallback = {
+  timeline: [
+    {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: "<h2>Thank you for participating.</h2><p>Your responses have been recorded.</p>",
+      choices: ["Finish"]
+    }
+  ],
+  conditional_function: () => !runtimeConfig.completionUrl
+};
+
+const redirectToDisqualification = {
+  type: jsPsychCallFunction,
+  func: () => {
+    window.location.href = runtimeConfig.disqualificationUrl;
+  }
+};
+
+const passBranch = {
+  timeline: [temporal, causal, counterfactual, cardSortTask, pilotFeedback, markCompleted, redirectToCompletion, completionFallback],
+  conditional_function: () => comprehensionResult.passed
+};
+
+const failBranch = {
+  timeline: [markDisqualified, redirectToDisqualification],
+  conditional_function: () => !comprehensionResult.passed
+};
+
+jsPsych.run([
+  intro,
+  demographics,
+  view_story,
+  comprehension,
+  passBranch,
+  failBranch
+]);
+  
