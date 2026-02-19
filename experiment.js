@@ -31,8 +31,6 @@ const participantMeta = {
   session_id: getParam("session_id") || getParam("SESSION_ID") || ""
 };
 
-const temporal_scale = ["1 Definitely No", "2 Probably No", "3 Unsure", "4 Probably Yes", "5 Definitely Yes"];
-const causal_scale = ["1 Not at all", "2 Slightly", "3 Moderately", "4 Strongly", "5 Very strongly"];
 const counterfactual_scale = ["1 Much less likely", "2 Less likely", "3 No change/Unsure", "4 More likely", "5 Much more likely"];
 const y_n_u = ["Yes", "No", "Unsure"];
 
@@ -42,6 +40,10 @@ if (typeof window.jsPsychCausalPairScale === "undefined" && typeof window.jsPsyc
     const info = {
       name: "causal-pair-scale",
       parameters: {
+        heading: {
+          type: jspsych.ParameterType.HTML_STRING,
+          default: ""
+        },
         instruction: {
           type: jspsych.ParameterType.HTML_STRING,
           default: "Indicate the likelihood that the event on the left causally contributed to the event on the right."
@@ -88,9 +90,11 @@ if (typeof window.jsPsychCausalPairScale === "undefined" && typeof window.jsPsyc
           })
           .join("");
 
+        const headingHtml = trial.heading ? "<h2>" + trial.heading + "</h2>" : "";
+
         display_element.innerHTML = `
         <div class="causal-card">
-          <h2>2) Pairwise Causal Contribution Questions</h2>
+          ${headingHtml}
           <p class="causal-instruction">${trial.instruction}</p>
           <div class="causal-events">
             <div class="causal-event-box causal-left-event">${trial.left_event}</div>
@@ -180,29 +184,11 @@ function getCanonicalCardEventsForStory(storyTitle) {
 
 
 const medicalShortQuestions = {
-  temporal: [
-    { prompt: "Did the hospital administrator approving a policy to reduce overnight staffing levels occur before the maintenance contractor disabling a ventilator alarm during a routine test?", labels: temporal_scale, required: true },
-    { prompt: "Did the maintenance contractor disabling a ventilator alarm during a routine test occur before the contractor leaving the room without re-enabling the alarm?", labels: temporal_scale, required: true },
-    { prompt: "Did the nurse being assigned more patients than usual occur before a brief interruption in power occurring on the ward?", labels: temporal_scale, required: true },
-    { prompt: "Did a brief interruption in power occurring on the ward occur before the ventilator stopping without sounding an alarm?", labels: temporal_scale, required: true },
-    { prompt: "Did the ventilator stopping without sounding an alarm occur before the nurse entering the room and finding a patient experiencing respiratory distress?", labels: temporal_scale, required: true },
-    { prompt: "Did the nurse entering the room and finding a patient experiencing respiratory distress occur before an inquest reviewing the sequence of events?", labels: temporal_scale, required: true },
-    { prompt: "Did the contractor leaving the room without re-enabling the alarm occur before the ventilator stopping without sounding an alarm?", labels: temporal_scale, required: true },
-    { prompt: "Did the maintenance contractor disabling a ventilator alarm during a routine test occur before the nurse entering the room and finding a patient experiencing respiratory distress?", labels: temporal_scale, required: true }
-  ],
-  causal: [
-    { left_event: "The hospital administrator approved a policy to reduce overnight staffing levels.", right_event: "The nurse was assigned more patients than usual.", labels: causal_scale, required: true },
-    { left_event: "The contractor left the room without re-enabling the alarm.", right_event: "The ventilator stopped without sounding an alarm.", labels: causal_scale, required: true },
-    { left_event: "A brief interruption in power occurred on the ward.", right_event: "The ventilator stopped without sounding an alarm.", labels: causal_scale, required: true },
-    { left_event: "The ventilator stopped without sounding an alarm.", right_event: "The nurse entered the room and found a patient experiencing respiratory distress.", labels: causal_scale, required: true },
-    { left_event: "The maintenance contractor disabled a ventilator alarm during a routine test.", right_event: "The ventilator stopped without sounding an alarm.", labels: causal_scale, required: true },
-    { left_event: "The nurse was assigned more patients than usual.", right_event: "The nurse entered the room and found a patient experiencing respiratory distress.", labels: causal_scale, required: true }
-  ],
   counterfactual: [
-    { prompt: "If the contractor leaving the room without re-enabling the alarm had not occurred, how would the likelihood of the ventilator stopping without sounding an alarm change?", labels: counterfactual_scale, required: true },
-    { prompt: "If a brief interruption in power occurring on the ward had not occurred, how would the likelihood of the ventilator stopping without sounding an alarm change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the nurse being assigned more patients than usual had not occurred, how would the likelihood of the nurse entering the room and finding a patient experiencing respiratory distress change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the maintenance contractor disabling a ventilator alarm during a routine test had not occurred, how would the likelihood of the ventilator stopping without sounding an alarm change?", labels: counterfactual_scale, required: true }
+    { left_event: "The contractor left the room without re-enabling the alarm.", right_event: "The ventilator stopped without sounding an alarm.", labels: counterfactual_scale, required: true },
+    { left_event: "A brief interruption in power occurred on the ward.", right_event: "The ventilator stopped without sounding an alarm.", labels: counterfactual_scale, required: true },
+    { left_event: "The nurse was assigned more patients than usual.", right_event: "The nurse entered the room and found a patient experiencing respiratory distress.", labels: counterfactual_scale, required: true },
+    { left_event: "The maintenance contractor disabled a ventilator alarm during a routine test.", right_event: "The ventilator stopped without sounding an alarm.", labels: counterfactual_scale, required: true }
   ],
   comprehension: [
     { prompt: "Was an inquest mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
@@ -211,33 +197,16 @@ const medicalShortQuestions = {
     { prompt: "Was a maintenance contractor mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Was a ventilator alarm mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Did the patient experience a heart attack?", labels: y_n_u, required: true, correct: "No" }
-  ]
+  ],
+  outcome_description: "the incident in which a patient experienced respiratory distress and an inquest was held"
 };
 
 const medicalMediumQuestions = {
-  temporal: [
-    { prompt: "Did the hospital administrator approving a policy to reduce overnight staffing levels on the ward occur before the maintenance contractor disabling a ventilator alarm while performing a standard test?", labels: temporal_scale, required: true },
-    { prompt: "Did the maintenance contractor disabling a ventilator alarm while performing a standard test occur before the contractor leaving without re-enabling the alarm?", labels: temporal_scale, required: true },
-    { prompt: "Did the nurse being assigned more patients than usual occur before a brief interruption in power occurring on the ward?", labels: temporal_scale, required: true },
-    { prompt: "Did a brief interruption in power occurring on the ward occur before the ventilator stopping operating without sounding an alarm?", labels: temporal_scale, required: true },
-    { prompt: "Did the ventilator stopping operating without sounding an alarm occur before the nurse entering the room and finding a patient experiencing respiratory distress?", labels: temporal_scale, required: true },
-    { prompt: "Did the nurse entering the room and finding a patient experiencing respiratory distress occur before an inquest reviewing the sequence of events?", labels: temporal_scale, required: true },
-    { prompt: "Did the contractor leaving without re-enabling the alarm occur before the ventilator stopping operating without sounding an alarm?", labels: temporal_scale, required: true },
-    { prompt: "Did the maintenance contractor disabling a ventilator alarm while performing a standard test occur before the nurse entering the room and finding a patient experiencing respiratory distress?", labels: temporal_scale, required: true }
-  ],
-  causal: [
-    { left_event: "The hospital administrator approved a policy to reduce overnight staffing levels on the ward.", right_event: "The nurse was assigned more patients than usual.", labels: causal_scale, required: true },
-    { left_event: "The contractor left without re-enabling the alarm.", right_event: "The ventilator stopped operating without sounding an alarm.", labels: causal_scale, required: true },
-    { left_event: "A brief interruption in power occurred on the ward.", right_event: "The ventilator stopped operating without sounding an alarm.", labels: causal_scale, required: true },
-    { left_event: "The ventilator stopped operating without sounding an alarm.", right_event: "The nurse entered the room and found a patient experiencing respiratory distress.", labels: causal_scale, required: true },
-    { left_event: "The maintenance contractor disabled a ventilator alarm while performing a standard test.", right_event: "The ventilator stopped operating without sounding an alarm.", labels: causal_scale, required: true },
-    { left_event: "The nurse was assigned more patients than usual.", right_event: "The nurse entered the room and found a patient experiencing respiratory distress.", labels: causal_scale, required: true }
-  ],
   counterfactual: [
-    { prompt: "If the contractor leaving without re-enabling the alarm had not occurred, how would the likelihood of the ventilator stopping operating without sounding an alarm change?", labels: counterfactual_scale, required: true },
-    { prompt: "If a brief interruption in power occurring on the ward had not occurred, how would the likelihood of the ventilator stopping operating without sounding an alarm change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the nurse being assigned more patients than usual had not occurred, how would the likelihood of the nurse entering the room and finding a patient experiencing respiratory distress change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the maintenance contractor disabling a ventilator alarm while performing a standard test had not occurred, how would the likelihood of the ventilator stopping operating without sounding an alarm change?", labels: counterfactual_scale, required: true }
+    { left_event: "The contractor left without re-enabling the alarm.", right_event: "The ventilator stopped operating without sounding an alarm.", labels: counterfactual_scale, required: true },
+    { left_event: "A brief interruption in power occurred on the ward.", right_event: "The ventilator stopped operating without sounding an alarm.", labels: counterfactual_scale, required: true },
+    { left_event: "The nurse was assigned more patients than usual.", right_event: "The nurse entered the room and found a patient experiencing respiratory distress.", labels: counterfactual_scale, required: true },
+    { left_event: "The maintenance contractor disabled a ventilator alarm while performing a standard test.", right_event: "The ventilator stopped operating without sounding an alarm.", labels: counterfactual_scale, required: true }
   ],
   comprehension: [
     { prompt: "Was an inquest mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
@@ -246,33 +215,16 @@ const medicalMediumQuestions = {
     { prompt: "Was a maintenance contractor mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Was a ventilator alarm mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Did the patient experience a heart attack?", labels: y_n_u, required: true, correct: "No" }
-  ]
+  ],
+  outcome_description: "the incident in which a patient experienced respiratory distress and an inquest was held"
 };
 
 const workplaceQuestions = {
-  temporal: [
-    { prompt: "Did the manager approving a plan to consolidate server resources occur before the technician updating configuration settings on a backup system?", labels: temporal_scale, required: true },
-    { prompt: "Did the technician updating configuration settings on a backup system occur before the technician not restarting one of the services?", labels: temporal_scale, required: true },
-    { prompt: "Did the analyst beginning to process a large dataset occur before system load increasing across the network?", labels: temporal_scale, required: true },
-    { prompt: "Did system load increasing across the network occur before a critical service stopping responding?", labels: temporal_scale, required: true },
-    { prompt: "Did a critical service stopping responding occur before users reporting they were unable to access shared files?", labels: temporal_scale, required: true },
-    { prompt: "Did users reporting they were unable to access shared files occur before an internal review examining the incident?", labels: temporal_scale, required: true },
-    { prompt: "Did the technician not restarting one of the services occur before a critical service stopping responding?", labels: temporal_scale, required: true },
-    { prompt: "Did the technician updating configuration settings on a backup system occur before users reporting they were unable to access shared files?", labels: temporal_scale, required: true }
-  ],
-  causal: [
-    { left_event: "The manager approved a plan to consolidate server resources.", right_event: "The technician updated configuration settings on a backup system.", labels: causal_scale, required: true },
-    { left_event: "The technician did not restart one of the services.", right_event: "A critical service stopped responding.", labels: causal_scale, required: true },
-    { left_event: "System load increased across the network.", right_event: "A critical service stopped responding.", labels: causal_scale, required: true },
-    { left_event: "A critical service stopped responding.", right_event: "Users reported they were unable to access shared files.", labels: causal_scale, required: true },
-    { left_event: "The analyst began processing a large dataset.", right_event: "System load increased across the network.", labels: causal_scale, required: true },
-    { left_event: "The technician updated configuration settings on a backup system.", right_event: "The technician did not restart one of the services.", labels: causal_scale, required: true }
-  ],
   counterfactual: [
-    { prompt: "If the technician not restarting one of the services had not occurred, how would the likelihood of a critical service stopping responding change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the analyst beginning to process a large dataset had not occurred, how would the likelihood of system load increasing across the network change?", labels: counterfactual_scale, required: true },
-    { prompt: "If system load increasing across the network had not occurred, how would the likelihood of users reporting they were unable to access shared files change?", labels: counterfactual_scale, required: true },
-    { prompt: "If a critical service stopping responding had not occurred, how would the likelihood of an internal review examining the incident change?", labels: counterfactual_scale, required: true }
+    { left_event: "The technician did not restart one of the services.", right_event: "A critical service stopped responding.", labels: counterfactual_scale, required: true },
+    { left_event: "The analyst began processing a large dataset.", right_event: "System load increased across the network.", labels: counterfactual_scale, required: true },
+    { left_event: "System load increased across the network.", right_event: "Users reported they were unable to access shared files.", labels: counterfactual_scale, required: true },
+    { left_event: "A critical service stopped responding.", right_event: "An internal review examined the incident.", labels: counterfactual_scale, required: true }
   ],
   comprehension: [
     { prompt: "Was an internal review mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
@@ -281,33 +233,16 @@ const workplaceQuestions = {
     { prompt: "Was a large dataset mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Were shared files mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Did a critical service stop responding?", labels: y_n_u, required: true, correct: "Yes" }
-  ]
+  ],
+  outcome_description: "the incident in which users lost access to shared files and an internal review was held"
 };
 
 const coastalQuestions = {
-  temporal: [
-    { prompt: "Did the city council approving a pilot floodgate project for the coastal road occur before contractors installing temporary barriers and signage near the road?", labels: temporal_scale, required: true },
-    { prompt: "Did contractors installing temporary barriers and signage near the road occur before a utilities team scheduling a routine inspection of a pump station?", labels: temporal_scale, required: true },
-    { prompt: "Did a utilities team scheduling a routine inspection of a pump station occur before the inspection requiring a temporary shutdown of the pump station?", labels: temporal_scale, required: true },
-    { prompt: "Did the inspection requiring a temporary shutdown of the pump station occur before a weather service issuing a coastal surge warning?", labels: temporal_scale, required: true },
-    { prompt: "Did a weather service issuing a coastal surge warning occur before the floodgate being activated during the warning period?", labels: temporal_scale, required: true },
-    { prompt: "Did the floodgate being activated during the warning period occur before water entering the road area and traffic being halted?", labels: temporal_scale, required: true },
-    { prompt: "Did water entering the road area and traffic being halted occur before a municipal review examining the sequence of events?", labels: temporal_scale, required: true },
-    { prompt: "Did contractors installing temporary barriers and signage near the road occur before water entering the road area and traffic being halted?", labels: temporal_scale, required: true }
-  ],
-  causal: [
-    { left_event: "The city council approved a pilot floodgate project for the coastal road.", right_event: "Contractors installed temporary barriers and signage near the road.", labels: causal_scale, required: true },
-    { left_event: "The inspection required a temporary shutdown of the pump station.", right_event: "The floodgate was activated during the warning period.", labels: causal_scale, required: true },
-    { left_event: "A weather service issued a coastal surge warning.", right_event: "The floodgate was activated during the warning period.", labels: causal_scale, required: true },
-    { left_event: "The floodgate was activated during the warning period.", right_event: "Water entered the road area and traffic was halted.", labels: causal_scale, required: true },
-    { left_event: "Contractors installed temporary barriers and signage near the road.", right_event: "Water entered the road area and traffic was halted.", labels: causal_scale, required: true },
-    { left_event: "Water entered the road area and traffic was halted.", right_event: "A municipal review examined the sequence of events.", labels: causal_scale, required: true }
-  ],
   counterfactual: [
-    { prompt: "If a weather service issuing a coastal surge warning had not occurred, how would the likelihood of the floodgate being activated during the warning period change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the inspection requiring a temporary shutdown of the pump station had not occurred, how would the likelihood of the floodgate being activated during the warning period change?", labels: counterfactual_scale, required: true },
-    { prompt: "If the floodgate being activated during the warning period had not occurred, how would the likelihood of water entering the road area and traffic being halted change?", labels: counterfactual_scale, required: true },
-    { prompt: "If contractors installing temporary barriers and signage near the road had not occurred, how would the likelihood of water entering the road area and traffic being halted change?", labels: counterfactual_scale, required: true }
+    { left_event: "A weather service issued a coastal surge warning.", right_event: "The floodgate was activated during the warning period.", labels: counterfactual_scale, required: true },
+    { left_event: "The inspection required a temporary shutdown of the pump station.", right_event: "The floodgate was activated during the warning period.", labels: counterfactual_scale, required: true },
+    { left_event: "The floodgate was activated during the warning period.", right_event: "Water entered the road area and traffic was halted.", labels: counterfactual_scale, required: true },
+    { left_event: "Contractors installed temporary barriers and signage near the road.", right_event: "Water entered the road area and traffic was halted.", labels: counterfactual_scale, required: true }
   ],
   comprehension: [
     { prompt: "Was a coastal surge warning mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
@@ -316,7 +251,8 @@ const coastalQuestions = {
     { prompt: "Were temporary barriers or signage mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Was a municipal review mentioned in the story?", labels: y_n_u, required: true, correct: "Yes" },
     { prompt: "Did a utilities team schedule a routine inspection of the road?", labels: y_n_u, required: true, correct: "No" }
-  ]
+  ],
+  outcome_description: "the incident in which water entered the road area and a municipal review was held"
 };
 
 const storyBank = {
@@ -573,46 +509,46 @@ const comprehension = {
   }
 };
 
-const temporal = {
-  type: jsPsychSurveyLikert,
-  preamble: `<h2>1) Pairwise Temporal Questions</h2>
-             <p>Treat "before" as earlier in time in the story world.</p>`,
-  questions: q.temporal,
-  button_label: "Continue"
-};
+const cardTaskEvents = getCanonicalCardEventsForStory(selectedStory.title) || selectedStory.paragraphs;
 
-const causal = {
+// --- 1) Counterfactual Judgements (box layout via causal-pair-scale plugin) ---
+
+const counterfactual = {
   timeline: [
     {
       type: jsPsychCausalPairScale,
-      instruction: "Indicate the strength of the causal contribution that the event on the left had to the event on the right given the context of the story.",
+      heading: "1) Counterfactual Judgements",
+      instruction: "If the event on the left had <strong>NOT</strong> occurred, how would the likelihood of the event on the right change?",
       left_event: jsPsych.timelineVariable("left_event"),
       right_event: jsPsych.timelineVariable("right_event"),
       labels: jsPsych.timelineVariable("labels"),
-      required: jsPsych.timelineVariable("required"),
+      required: true,
       button_label: "Continue"
     }
   ],
-  timeline_variables: q.causal
+  timeline_variables: q.counterfactual
 };
 
-const counterfactual = {
-  type: jsPsychSurveyLikert,
-  preamble: `<h2>3) Counterfactual Judgements</h2>
-             <p>Imagine the change described in each item. Rate how the likelihood of the target event would change in the same story setting.</p>`,
-  questions: q.counterfactual,
+// --- 2) Responsibility Allocation ---
+
+const responsibilityTask = {
+  type: jsPsychResponsibilityAllocation,
+  title: "2) Responsibility Allocation",
+  instructions:
+    "Distribute exactly <strong>100 points</strong> across the events below to indicate how responsible " +
+    "each event was for <strong>" + (q.outcome_description || "the incident that occurred") + "</strong>." +
+    "<br><br>Events you consider more responsible should receive more points. The total must equal 100.",
+  events: cardTaskEvents,
+  exclude_indices: [7],
+  total_points: 100,
   button_label: "Continue"
 };
 
-// --- 4) Event ordering (Card Sort) task ---
-// Participants reorder shuffled canonical events into chronological order.
-// Assumes jsPsychCardSort is loaded (plugin-card-sort.js).
-
-const cardTaskEvents = getCanonicalCardEventsForStory(selectedStory.title) || selectedStory.paragraphs;
+// --- 3) Event ordering (Card Sort) task ---
 
 const cardSortTask = {
   type: jsPsychCardSort,
-  title: "4) Event Ordering",
+  title: "3) Event Ordering",
   instructions:
     "Below are key events from the story you just read, presented in a random order.<br><br>" +
     "Drag the cards to rearrange them into the <strong>chronological order</strong> in which " +
@@ -706,7 +642,7 @@ const redirectToDisqualification = {
 };
 
 const passBranch = {
-  timeline: [temporal, causal, counterfactual, cardSortTask, pilotFeedback, markCompleted, redirectToCompletion, completionFallback],
+  timeline: [counterfactual, responsibilityTask, cardSortTask, pilotFeedback, markCompleted, redirectToCompletion, completionFallback],
   conditional_function: () => comprehensionResult.passed
 };
 

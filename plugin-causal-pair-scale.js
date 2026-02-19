@@ -9,6 +9,10 @@
   const info = {
     name: "causal-pair-scale",
     parameters: {
+      heading: {
+        type: jspsych.ParameterType.HTML_STRING,
+        default: ""
+      },
       instruction: {
         type: jspsych.ParameterType.HTML_STRING,
         default: "Indicate the likelihood that the event on the left causally contributed to the event on the right."
@@ -55,9 +59,11 @@
         })
         .join("");
 
+      const headingHtml = trial.heading ? "<h2>" + trial.heading + "</h2>" : "";
+
       display_element.innerHTML = `
         <div class="causal-card">
-          <h2>2) Pairwise Causal Contribution Questions</h2>
+          ${headingHtml}
           <p class="causal-instruction">${trial.instruction}</p>
           <div class="causal-events">
             <div class="causal-event-box causal-left-event">${trial.left_event}</div>

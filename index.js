@@ -131,7 +131,8 @@
       { src: "dist/plugin-call-function.js", ready: () => typeof jsPsychCallFunction !== "undefined" },
       { src: "plugin-causal-pair-scale.js", ready: () => typeof jsPsychCausalPairScale !== "undefined" },
       { src: "plugin-card-board.js", ready: () => typeof jsPsychCardBoard !== "undefined" },
-      { src: "plugin-card-sort.js", ready: () => typeof jsPsychCardSort !== "undefined" }
+      { src: "plugin-card-sort.js", ready: () => typeof jsPsychCardSort !== "undefined" },
+      { src: "plugin-responsibility-allocation.js", ready: () => typeof jsPsychResponsibilityAllocation !== "undefined" }
     ];
 
     // Load missing scripts from repository paths in order.

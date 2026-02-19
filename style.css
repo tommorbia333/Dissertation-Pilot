@@ -404,3 +404,88 @@ textarea {
   font-size: 0.9rem;
   margin: 12px 0 10px;
 }
+
+/* --- Responsibility allocation task --- */
+.ra-wrap {
+  max-width: 760px;
+  margin: 24px auto;
+  padding: 0 16px 24px;
+}
+
+.ra-panel {
+  background: #fff;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ra-instructions {
+  margin-bottom: 14px;
+}
+
+.ra-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 auto 14px;
+  max-width: 620px;
+}
+
+.ra-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #d1d9e6;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.ra-label {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.ra-input {
+  width: 72px;
+  text-align: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.ra-input:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 1px;
+}
+
+.ra-total {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  margin-bottom: 14px;
+}
+
+.ra-total-ok {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.ra-total-over {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.ra-error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin: 12px 0 10px;
+  text-align: center;
+}
