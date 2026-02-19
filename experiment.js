@@ -137,6 +137,143 @@ if (typeof window.jsPsychCausalPairScale === "undefined" && typeof window.jsPsyc
   })(window.jsPsychModule);
 }
 
+// Fallback: ResponsibilityAllocation plugin
+if (typeof window.jsPsychResponsibilityAllocation === "undefined" && typeof window.jsPsychModule !== "undefined") {
+  (function (jspsych) {
+    var info = {
+      name: "responsibility-allocation",
+      parameters: {
+        title: { type: jspsych.ParameterType.STRING, default: "Responsibility Allocation" },
+        instructions: { type: jspsych.ParameterType.HTML_STRING, default: "" },
+        events: { type: jspsych.ParameterType.STRING, array: true, default: [] },
+        exclude_indices: { type: jspsych.ParameterType.INT, array: true, default: [7] },
+        total_points: { type: jspsych.ParameterType.INT, default: 100 },
+        button_label: { type: jspsych.ParameterType.STRING, default: "Continue" }
+      }
+    };
+    class P {
+      constructor(j) { this.jsPsych = j; }
+      trial(el, trial) {
+        var t0 = performance.now(), target = trial.total_points, excludeSet = new Set(trial.exclude_indices || []);
+        var events = (trial.events || []).map(function (t, i) {
+          return { id: "e" + (i + 1), canonicalIndex: i, text: String(t).replace(/^E\d+:\s*/, "") };
+        }).filter(function (e) { return !excludeSet.has(e.canonicalIndex); });
+        var rows = events.map(function (e) {
+          return '<div class="ra-row"><span class="ra-label">' + e.text + '</span>' +
+            '<input class="ra-input" type="number" min="0" max="' + target + '" value="0" data-event-id="' + e.id + '" data-canonical-index="' + e.canonicalIndex + '"></div>';
+        }).join("");
+        el.innerHTML = '<div class="ra-wrap"><div class="ra-panel"><h2>' + trial.title + '</h2>' +
+          '<p class="ra-instructions">' + trial.instructions + '</p><div class="ra-list">' + rows + '</div>' +
+          '<div class="ra-total" id="ra-total">Total: <span id="ra-sum">0</span> / ' + target + '</div>' +
+          '<p id="ra-error" class="ra-error" style="display:none;">Points must add up to exactly ' + target + '.</p>' +
+          '<button id="ra-next" class="jspsych-btn">' + trial.button_label + '</button></div></div>';
+        var inputs = el.querySelectorAll(".ra-input"), sumEl = el.querySelector("#ra-sum"),
+            totalEl = el.querySelector("#ra-total"), errorEl = el.querySelector("#ra-error");
+        function getSum() { var s = 0; for (var i = 0; i < inputs.length; i++) { var v = parseInt(inputs[i].value, 10); if (!isNaN(v) && v >= 0) s += v; } return s; }
+        function updateTotal() {
+          var s = getSum(); sumEl.textContent = s; errorEl.style.display = "none";
+          totalEl.classList.toggle("ra-total-ok", s === target);
+          totalEl.classList.toggle("ra-total-over", s > target);
+        }
+        for (var i = 0; i < inputs.length; i++) { inputs[i].addEventListener("input", updateTotal); inputs[i].addEventListener("focus", function () { this.select(); }); }
+        var plugin = this;
+        el.querySelector("#ra-next").addEventListener("click", function () {
+          if (getSum() !== target) { errorEl.style.display = "block"; return; }
+          var rt = Math.round(performance.now() - t0), alloc = [], td = { rt: rt };
+          for (var i = 0; i < inputs.length; i++) {
+            var pts = parseInt(inputs[i].value, 10) || 0;
+            td[inputs[i].dataset.eventId + "_points"] = pts;
+            alloc.push({ id: inputs[i].dataset.eventId, text: events[i].text, points: pts });
+          }
+          td.allocation = alloc; el.innerHTML = ""; plugin.jsPsych.finishTrial(td);
+        });
+      }
+    }
+    P.info = info; window.jsPsychResponsibilityAllocation = P;
+  })(window.jsPsychModule);
+}
+
+// Fallback: CardSort plugin
+if (typeof window.jsPsychCardSort === "undefined" && typeof window.jsPsychModule !== "undefined") {
+  (function (jspsych) {
+    var info = {
+      name: "card-sort",
+      parameters: {
+        title: { type: jspsych.ParameterType.STRING, default: "Event Ordering" },
+        instructions: { type: jspsych.ParameterType.HTML_STRING, default: "" },
+        events: { type: jspsych.ParameterType.STRING, array: true, default: [] },
+        button_label: { type: jspsych.ParameterType.STRING, default: "Continue" },
+        shuffle: { type: jspsych.ParameterType.BOOL, default: true }
+      }
+    };
+    function shuffle(arr) {
+      var a = arr.slice();
+      do { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } }
+      while (a.length > 1 && a.every(function (v, i) { return v.id === arr[i].id; }));
+      return a;
+    }
+    function kendallTau(r) {
+      var n = r.length, c = 0, d = 0;
+      for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) { if (r[i] < r[j]) c++; else if (r[i] > r[j]) d++; }
+      var p = n * (n - 1) / 2; return p === 0 ? 0 : +((c - d) / p).toFixed(4);
+    }
+    class CS {
+      constructor(j) { this.jsPsych = j; }
+      trial(el, trial) {
+        var t0 = performance.now(), mc = 0;
+        var parsed = (trial.events || []).map(function (t, i) { return { id: "e" + (i + 1), canonicalIndex: i, text: String(t).replace(/^E\d+:\s*/, "") }; });
+        var order = trial.shuffle !== false ? shuffle(parsed) : parsed.slice();
+        var initOrder = order.map(function (e) { return e.id; });
+        el.innerHTML = '<div class="cs-wrap"><div class="cs-panel"><h2>' + trial.title + '</h2><p class="cs-instructions">' + trial.instructions + '</p>' +
+          '<div class="cs-list-area"><div class="cs-endpoint cs-endpoint-top">&#9650; Earliest (first)</div><div class="cs-list" id="cs-list"></div>' +
+          '<div class="cs-endpoint cs-endpoint-bottom">&#9660; Latest (last)</div></div>' +
+          '<button id="cs-next" class="jspsych-btn">' + trial.button_label + '</button></div></div>';
+        var listEl = el.querySelector("#cs-list");
+        order.forEach(function (ev, idx) {
+          var d = document.createElement("div"); d.className = "cs-item"; d.dataset.eventId = ev.id; d.dataset.canonicalIndex = String(ev.canonicalIndex);
+          d.setAttribute("tabindex", "0"); d.style.touchAction = "none";
+          d.innerHTML = '<span class="cs-pos">' + (idx + 1) + '</span><span class="cs-text">' + ev.text + '</span><span class="cs-handle" aria-hidden="true">&#x2807;</span>';
+          listEl.appendChild(d);
+        });
+        function renum() { var it = listEl.querySelectorAll(".cs-item"); for (var i = 0; i < it.length; i++) it[i].querySelector(".cs-pos").textContent = i + 1; }
+        var drag = null;
+        function onDown(e) {
+          var item = e.target.closest(".cs-item"); if (!item || !listEl.contains(item) || (typeof e.button === "number" && e.button !== 0)) return; e.preventDefault();
+          var rect = item.getBoundingClientRect(), oi = Array.from(listEl.querySelectorAll(".cs-item")).indexOf(item);
+          var ghost = item.cloneNode(true); ghost.classList.add("cs-ghost");
+          ghost.style.cssText = "position:fixed;width:" + rect.width + "px;left:" + rect.left + "px;top:" + rect.top + "px;z-index:10000;pointer-events:none;margin:0;";
+          document.body.appendChild(ghost);
+          var ph = document.createElement("div"); ph.className = "cs-placeholder"; ph.style.height = rect.height + "px"; listEl.insertBefore(ph, item); item.remove();
+          drag = { item: item, ghost: ghost, ph: ph, offX: e.clientX - rect.left, offY: e.clientY - rect.top, origIndex: oi };
+          document.addEventListener("pointermove", onMove); document.addEventListener("pointerup", onUp);
+        }
+        function onMove(e) {
+          if (!drag) return; drag.ghost.style.left = (e.clientX - drag.offX) + "px"; drag.ghost.style.top = (e.clientY - drag.offY) + "px";
+          var ch = Array.from(listEl.children), before = null;
+          for (var i = 0; i < ch.length; i++) { if (ch[i] === drag.ph) continue; var r = ch[i].getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { before = ch[i]; break; } }
+          if (before) listEl.insertBefore(drag.ph, before); else listEl.appendChild(drag.ph);
+        }
+        function onUp() {
+          if (!drag) return; listEl.insertBefore(drag.item, drag.ph); drag.ph.remove(); drag.ghost.remove();
+          if (Array.from(listEl.querySelectorAll(".cs-item")).indexOf(drag.item) !== drag.origIndex) mc++;
+          renum(); document.removeEventListener("pointermove", onMove); document.removeEventListener("pointerup", onUp); drag = null;
+        }
+        listEl.addEventListener("pointerdown", onDown);
+        var plugin = this;
+        el.querySelector("#cs-next").addEventListener("click", function () {
+          var items = Array.from(listEl.querySelectorAll(".cs-item"));
+          var ids = items.map(function (e) { return e.dataset.eventId; });
+          var ci = items.map(function (e) { return Number(e.dataset.canonicalIndex); });
+          var td = { submitted_order: ids, initial_order: initOrder, kendall_tau: kendallTau(ci), total_moves: mc, rt: Math.round(performance.now() - t0) };
+          for (var i = 0; i < items.length; i++) td[items[i].dataset.eventId + "_rank"] = i + 1;
+          listEl.removeEventListener("pointerdown", onDown); el.innerHTML = ""; plugin.jsPsych.finishTrial(td);
+        });
+      }
+    }
+    CS.info = info; window.jsPsychCardSort = CS;
+  })(window.jsPsychModule);
+}
+
 // --- Canonical key events for the card task (E1–E8) ---
 // Source: Pilot Human Experiment.pdf canonical event lists. :contentReference[oaicite:4]{index=4} :contentReference[oaicite:5]{index=5} :contentReference[oaicite:6]{index=6}
 
