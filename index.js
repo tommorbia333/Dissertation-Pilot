@@ -129,7 +129,9 @@
       { src: "dist/plugin-survey-html-form.js", ready: () => typeof jsPsychSurveyHtmlForm !== "undefined" },
       { src: "dist/plugin-survey-likert.js", ready: () => typeof jsPsychSurveyLikert !== "undefined" },
       { src: "dist/plugin-call-function.js", ready: () => typeof jsPsychCallFunction !== "undefined" },
-      { src: "plugin-causal-pair-scale.js", ready: () => typeof jsPsychCausalPairScale !== "undefined" }
+      { src: "plugin-causal-pair-scale.js", ready: () => typeof jsPsychCausalPairScale !== "undefined" },
+      { src: "plugin-card-board.js", ready: () => typeof jsPsychCardBoard !== "undefined" },
+      { src: "plugin-card-sort.js", ready: () => typeof jsPsychCardSort !== "undefined" }
     ];
 
     // Load missing scripts from repository paths in order.
