@@ -160,7 +160,7 @@ if (typeof window.jsPsychResponsibilityAllocation === "undefined" && typeof wind
         }).filter(function (e) { return !excludeSet.has(e.canonicalIndex); });
         var rows = events.map(function (e) {
           return '<div class="ra-row"><span class="ra-label">' + e.text + '</span>' +
-            '<input class="ra-input" type="number" min="0" max="' + target + '" value="0" data-event-id="' + e.id + '" data-canonical-index="' + e.canonicalIndex + '"></div>';
+            '<input class="ra-input" type="number" min="0" max="' + target + '" value="0" name="' + e.id + '" data-event-id="' + e.id + '" data-canonical-index="' + e.canonicalIndex + '"></div>';
         }).join("");
         el.innerHTML = '<div class="ra-wrap"><div class="ra-panel"><h2>' + trial.title + '</h2>' +
           '<p class="ra-instructions">' + trial.instructions + '</p><div class="ra-list">' + rows + '</div>' +
@@ -694,27 +694,6 @@ const cardSortTask = {
   events: cardTaskEvents,
   button_label: "Continue"
 };
-
-// --- 5) Event-graph reconstruction (Card Task) ---
-// NOTE: This assumes jsPsychCardBoard is loaded (plugin-card-board.js).
-
-const cardTask = {
-  type: jsPsychCardBoard,
-  title: "5) Card Task (Event-Graph Reconstruction)",
-  instructions:
-    "Drag each event onto the board.<br><br>" +
-    "<strong>X-axis</strong>: earlier → later (temporal sequence)<br>" +
-    "<strong>Y-axis</strong>: lower → higher causal impact<br><br>" +
-    "Use distance as your guide: events that are closer together should be those you think are closer in sequence/causal linkage.",
-  x_label_left: "Earlier",
-  x_label_right: "Later",
-  y_label_bottom: "Lower impact",
-  y_label_top: "Higher impact",
-  events: cardTaskEvents,
-  required_place_all: true,
-  start_layout: "stack"
-};
-
 
 const pilotFeedback = {
   type: jsPsychSurveyHtmlForm,

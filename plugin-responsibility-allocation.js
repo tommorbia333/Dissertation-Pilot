@@ -62,7 +62,7 @@
         return '<div class="ra-row">' +
           '<span class="ra-label">' + ev.text + '</span>' +
           '<input class="ra-input" type="number" min="0" max="' + target + '" value="0" ' +
-          'data-event-id="' + ev.id + '" data-canonical-index="' + ev.canonicalIndex + '">' +
+          'name="' + ev.id + '" data-event-id="' + ev.id + '" data-canonical-index="' + ev.canonicalIndex + '">' +
           '</div>';
       }).join("");
 
