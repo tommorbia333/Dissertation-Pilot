@@ -1,20 +1,9 @@
-// file://localhost:8000/
-// http://localhost:8000/
+// Guard against double execution (index.js bootstrap + index.html script tag)
+if (typeof window._experimentJsRan !== "undefined") {
+  // already executed — skip
+} else {
+window._experimentJsRan = true;
 
-
-// Code includes the following:
-// - Get a randomized story from in-code text
-// - Get the questions for the specific story
-// - Comprehension check and disqualification
-// - Demographics
-// - Get the participant metadata
-// - Get the runtime configuration from URL params
-// - Feedback page
-
-
-// To do:
-// - Card task?
-// - Make git repository for the project
 function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
@@ -734,4 +723,6 @@ jsPsych.run([
   passBranch,
   failBranch
 ]);
+
+} // end double-load guard
   
