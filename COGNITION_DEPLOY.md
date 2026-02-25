@@ -22,6 +22,9 @@ This project is now configured to run as a static jsPsych task on Cognition.run.
    - `style.css`
    - `disqualified.html`
    - `plugin-causal-pair-scale.js`
+   - `plugin-card-sort.js`
+   - `plugin-card-board.js`
+   - `plugin-responsibility-allocation.js`
    - `dist/` JS and CSS files used by `index.html`/experiment
    - `Stories/` PDFs
 3. Mirror script/style loading from `index.html` in Cognition's source/external library setup.
