@@ -75,11 +75,12 @@ See `Data/gold_standard_graphs.json` for the full schema and gold-standard graph
 
 ## Human experiment
 
-A browser-based behavioural experiment built with [jsPsych](https://www.jspsych.org/). Participants read the same narratives used in the computational experiment, then complete three tasks:
+A browser-based behavioural experiment built with [jsPsych](https://www.jspsych.org/). Participants read the same narratives used in the computational experiment, then complete four tasks:
 
-1. **Card sort** — drag-and-drop events into chronological order
-2. **Causal pair ratings** — rate the causal strength between event pairs on a continuous scale
+1. **Comprehension check** — ensures the participant understood the text
+2. **Counterfactual judgements** — rate the likelihood of an event occuring given another event's theoretical abscence
 3. **Responsibility allocation** — distribute responsibility across contributing causes
+4. **Event ordering** — participants reorder events in what they believe the correct temporal order to be
 
 The experiment is designed for deployment on [Cognition.run](https://www.cognition.run/) or any static hosting platform.
 
